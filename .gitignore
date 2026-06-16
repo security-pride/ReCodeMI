@@ -1,0 +1,24 @@
+# Raw large datasets. Keep these outside normal Git history.
+datasets/APPS/APPS.jsonl
+datasets/stack2/the-stack-v2-python-90k.jsonl
+
+# Generated datasets.
+datasets/stack2/original_stack2_apps.jsonl
+datasets/stack2/fit.jsonl
+datasets/stack2/validate.jsonl
+datasets/stack2/test.jsonl
+datasets/stack2/AdvPrompt-MIA/*.jsonl
+datasets/stack2/AdvPrompt-MIA/*.json
+datasets/stack2/naturalcc/source/
+datasets/stack2/naturalcc/target/
+datasets/stack2/naturalcc/shadow_*/
+datasets/stack2/naturalcc/lat/
+datasets/stack2/naturalcc/metadata.json
+
+# Experiment outputs and caches.
+results/
+cache/
+__pycache__/
+*.py[cod]
+.DS_Store
+obfupy/
