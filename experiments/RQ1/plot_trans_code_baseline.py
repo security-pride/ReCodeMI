@@ -18,6 +18,7 @@ if str(RQ2_DIR) not in sys.path:
     sys.path.insert(0, str(RQ2_DIR))
 
 from plot_RQ2 import (  # noqa: E402
+    FONT_SIZES as RQ2_FONT_SIZES,
     GROUP_ORDER_SINGLE,
     _load_model_scores,
     _plot_violin_on_ax as _plot_rq2_violin_on_ax,
@@ -53,6 +54,24 @@ METHOD_DISPLAY_LABELS = {
     "min_k": "Min-K",
     "ppl": "Perplexity",
 }
+FONT_SIZES = {
+    "title": 22,
+    "axis_label": 24,
+    "tick_label": 22,
+    "trend_value": 16,
+    "legend": 16,
+    "no_data": 20,
+}
+FIGURE_LAYOUT = {
+    "fig_width": 27.0,
+    "fig_height": 7.6,
+    "tight_pad": 0.55,
+    "tight_w_pad": 0.55,
+    "tight_h_pad": 1.15,
+    "subplot_wspace": 0.22,
+    "subplot_hspace": 0.8,
+}
+RQ2_FONT_SIZES.update(FONT_SIZES)
 
 
 def _parse_methods(value: str) -> List[str]:
@@ -192,7 +211,16 @@ def _plot_rq1_violin_on_ax(
             body.set_edgecolor("#6BAED6")
             body.set_alpha(0.58)
     else:
-        ax.text(0.5, 0.5, "No data", ha="center", va="center", transform=ax.transAxes)
+        ax.text(
+            0.5,
+            0.5,
+            "No data",
+            ha="center",
+            va="center",
+            transform=ax.transAxes,
+            fontsize=FONT_SIZES["no_data"],
+            fontweight="bold",
+        )
 
     if trend_stat in {"mean", "median"}:
         statistic = np.mean if trend_stat == "mean" else np.median
@@ -203,25 +231,41 @@ def _plot_rq1_violin_on_ax(
         )
         valid = np.isfinite(y_values)
         if np.any(valid):
-            ax.plot(x_values[valid], y_values[valid], marker="o", color="#008B8B", linewidth=2.0)
+            ax.plot(
+                x_values[valid],
+                y_values[valid],
+                marker="o",
+                color="#008B8B",
+                linewidth=2.0,
+                label=f"{trend_stat} trend",
+            )
             for x_value, y_value in zip(x_values[valid], y_values[valid]):
-                ax.text(x_value, y_value, f"{y_value:.4f}", ha="center", va="bottom", fontsize=10,
-                        fontweight="bold", color="#008B8B")
+                ax.text(
+                    x_value,
+                    y_value,
+                    f"{y_value:.4f}",
+                    ha="center",
+                    va="bottom",
+                    fontsize=FONT_SIZES["trend_value"],
+                    fontweight="bold",
+                    color="#008B8B",
+                )
+            ax.legend(loc="best", framealpha=0.85, fontsize=FONT_SIZES["legend"])
 
     ax.set_xticks(np.arange(1, len(group_order) + 1))
     ax.set_xticklabels(
         [GROUP_DISPLAY_LABELS.get(group, group) for group in group_order],
         rotation=18,
         ha="right",
-        fontsize=15,
+        fontsize=FONT_SIZES["tick_label"],
         fontweight="bold",
     )
-    ax.tick_params(axis="y", labelsize=15)
+    ax.tick_params(axis="y", labelsize=FONT_SIZES["tick_label"])
     for label in ax.get_yticklabels():
         label.set_fontweight("bold")
     ax.set_xlim(0.5, len(group_order) + 0.5)
-    ax.set_ylabel("Value", fontsize=17, fontweight="bold")
-    ax.set_title(title, fontsize=15, fontweight="bold", pad=13)
+    ax.set_ylabel("Value", fontsize=FONT_SIZES["axis_label"], fontweight="bold")
+    ax.set_title(title, fontsize=FONT_SIZES["title"], fontweight="bold", pad=13)
     ax.grid(axis="y", color="#E6E6E6")
 
 
@@ -263,7 +307,12 @@ def main() -> None:
         raise ValueError("--independent-old-indices must contain four values.")
 
     overrides = _parse_method_q_high_overrides(args.method_q_high_overrides)
-    fig, axes = plt.subplots(2, 5, figsize=(27, 7.6), facecolor="#FFFFFF")
+    fig, axes = plt.subplots(
+        2,
+        5,
+        figsize=(FIGURE_LAYOUT["fig_width"], FIGURE_LAYOUT["fig_height"]),
+        facecolor="#FFFFFF",
+    )
     flat_axes = axes.flatten()
     rq1_axis_indices = [0, 1, 2, 3, 5, 6, 7, 8]
     for method, axis_index in zip(ordered_methods, rq1_axis_indices):
@@ -290,8 +339,15 @@ def main() -> None:
         axes[1, 4], GROUP_ORDER_SINGLE, grouped_syn, f"Syn Score Distribution", "", args.violin_trend_stat
     )
 
-    fig.tight_layout(pad=0.55, w_pad=0.55, h_pad=1.15)
-    fig.subplots_adjust(wspace=0.22, hspace=0.45)
+    fig.tight_layout(
+        pad=FIGURE_LAYOUT["tight_pad"],
+        w_pad=FIGURE_LAYOUT["tight_w_pad"],
+        h_pad=FIGURE_LAYOUT["tight_h_pad"],
+    )
+    fig.subplots_adjust(
+        wspace=FIGURE_LAYOUT["subplot_wspace"],
+        hspace=FIGURE_LAYOUT["subplot_hspace"],
+    )
     output = args.output.resolve() if args.output else args.from_result.resolve() / "rq1_trans_code_baseline_2x5.png"
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output, dpi=220)

@@ -22,6 +22,23 @@ GROUP_DISPLAY_LABELS = {
     "v4": "Level 4",
     "Unseen": "Non-member",
 }
+FONT_SIZES = {
+    "title": 26,
+    "axis_label": 28,
+    "tick_label": 28,
+    "trend_value": 16,
+    "legend": 20,
+    "no_data": 26,
+}
+FIGURE_LAYOUT = {
+    "fig_width": 18.0,
+    "fig_height": 8.0,
+    "tight_pad": 0.75,
+    "tight_w_pad": 1.0,
+    "tight_h_pad": 1.5,
+    "subplot_wspace": 0.25,
+    "subplot_hspace": 0.80,
+}
 
 
 def _split_csv(value: str) -> List[str]:
@@ -156,12 +173,18 @@ def _plot_violin_on_ax(
             ha="center",
             va="center",
             transform=ax.transAxes,
-            fontsize=14,
+            fontsize=FONT_SIZES["no_data"],
             fontweight="bold",
         )
-        ax.set_title(title, fontsize=15, fontweight="bold", pad=13)
+        ax.set_title(title, fontsize=FONT_SIZES["title"], fontweight="bold", pad=13)
         ax.set_xticks(np.arange(1, len(group_order) + 1))
-        ax.set_xticklabels(_display_groups(group_order), rotation=18, ha="right", fontsize=15, fontweight="bold")
+        ax.set_xticklabels(
+            _display_groups(group_order),
+            rotation=18,
+            ha="right",
+            fontsize=FONT_SIZES["tick_label"],
+            fontweight="bold",
+        )
         return
 
     positions = []
@@ -217,21 +240,27 @@ def _plot_violin_on_ax(
                     f"{yi:.4f}",
                     ha="center",
                     va="bottom",
-                    fontsize=10,
+                    fontsize=FONT_SIZES["trend_value"],
                     fontweight="bold",
                     color="#008B8B",
                 )
-            ax.legend(loc="best", framealpha=0.85, fontsize=10)
+            ax.legend(loc="best", framealpha=0.85, fontsize=FONT_SIZES["legend"])
 
     ax.set_xticks(np.arange(1, len(group_order) + 1))
-    ax.set_xticklabels(_display_groups(group_order), rotation=18, ha="right", fontsize=15, fontweight="bold")
-    ax.tick_params(axis="y", labelsize=15)
+    ax.set_xticklabels(
+        _display_groups(group_order),
+        rotation=18,
+        ha="right",
+        fontsize=FONT_SIZES["tick_label"],
+        fontweight="bold",
+    )
+    ax.tick_params(axis="y", labelsize=FONT_SIZES["tick_label"])
     for label in ax.get_yticklabels():
         label.set_fontweight("bold")
     ax.set_xlim(0.5, len(group_order) + 0.5)
-    ax.set_ylabel(ylabel, fontsize=17, fontweight="bold")
+    ax.set_ylabel(ylabel, fontsize=FONT_SIZES["axis_label"], fontweight="bold")
     ax.set_xlabel("")
-    ax.set_title(title, fontsize=15, fontweight="bold", pad=13)
+    ax.set_title(title, fontsize=FONT_SIZES["title"], fontweight="bold", pad=13)
     ax.grid(axis="y", color="#E6E6E6", alpha=1.0)
 
 
@@ -325,7 +354,12 @@ def main() -> None:
     if len(old_indices) != 4:
         raise ValueError("--independent-old-indices must have exactly 4 entries for v1..v4.")
 
-    fig, axes = plt.subplots(2, 3, figsize=(6.0 * 3, 4.0 * 2), facecolor="#FFFFFF")
+    fig, axes = plt.subplots(
+        2,
+        3,
+        figsize=(FIGURE_LAYOUT["fig_width"], FIGURE_LAYOUT["fig_height"]),
+        facecolor="#FFFFFF",
+    )
 
     for col, (model, label) in enumerate(zip(models, labels)):
         lat_json = args.results_root / model / args.parent_prefix / args.single_run_subdir / "LAT.json"
@@ -335,7 +369,7 @@ def main() -> None:
             GROUP_ORDER_SINGLE,
             grouped_mem,
             f"{label} Mem",
-            "Mem Score",
+            "Mem Score" if col == 0 else "",
             args.violin_trend_stat,
         )
         _plot_violin_on_ax(
@@ -343,12 +377,19 @@ def main() -> None:
             GROUP_ORDER_SINGLE,
             grouped_syn,
             f"{label} Syn",
-            "Syn Score",
+            "Syn Score" if col == 0 else "",
             args.violin_trend_stat,
         )
 
-    fig.tight_layout(pad=0.75, w_pad=1.0, h_pad=1.5)
-    fig.subplots_adjust(wspace=0.25, hspace=0.40)
+    fig.tight_layout(
+        pad=FIGURE_LAYOUT["tight_pad"],
+        w_pad=FIGURE_LAYOUT["tight_w_pad"],
+        h_pad=FIGURE_LAYOUT["tight_h_pad"],
+    )
+    fig.subplots_adjust(
+        wspace=FIGURE_LAYOUT["subplot_wspace"],
+        hspace=FIGURE_LAYOUT["subplot_hspace"],
+    )
 
     if args.output is not None:
         out_path = args.output.resolve()
